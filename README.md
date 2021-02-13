@@ -2,6 +2,7 @@
 
 
 # Quickstart instructions
+Please run all these commands inside foobar-kafka directory
 
 #Create docker networks
 ```bash
