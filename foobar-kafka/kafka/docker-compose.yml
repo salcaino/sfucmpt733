@@ -1,0 +1,85 @@
+version: "3"
+
+services:
+
+  zookeeper:
+    image: zookeeper
+    restart: always
+    container_name: zookeeper
+    hostname: zookeeper
+    ports:
+      - 2181:2181
+    networks:
+      - default
+    environment:
+      ZOO_MY_ID: 1
+
+  broker:
+    container_name: broker
+    image: wurstmeister/kafka
+    ports:
+      - 9092:9092
+    networks:
+      - default
+    environment:
+      KAFKA_ADVERTISED_HOST_NAME: broker
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_MESSAGE_MAX_BYTES: 2000000
+      # Create topic, with 1 partition, 1 replica
+      KAFKA_CREATE_TOPICS: "${TWEET_TOPIC}:1:1,${WEATHER_TOPIC}:1:1,${TWITTER_SINK_TOPIC}:1:1"
+
+  kafka_manager:
+    image: hlebalbau/kafka-manager:stable
+    container_name: kakfa-manager
+    restart: always
+    ports:
+      - 9000:9000
+    networks:
+      - default
+    environment:
+      ZK_HOSTS: "zookeeper:2181"
+      APPLICATION_SECRET: "random-secret"
+      KAFKA_MANAGER_AUTH_ENABLED: "true"
+      KAFKA_MANAGER_USERNAME: admin
+      KAFKA_MANAGER_PASSWORD: smellycat
+    command: -Dpidfile.path=/dev/null
+  connect:
+    build:
+      context: .
+      dockerfile: Dockerfile-connect
+    hostname: kafka-connect
+    container_name: kafka-connect
+    depends_on:
+      - zookeeper
+      - broker
+    ports:
+      - "8083:8083"
+    networks:
+      - default
+      - secondary
+    environment:
+      CONNECT_BOOTSTRAP_SERVERS: 'broker:9092'
+      CONNECT_REST_ADVERTISED_HOST_NAME: kafka-connect
+      CONNECT_REST_PORT: 8083
+      CONNECT_GROUP_ID: kafka-connect-group
+      CONNECT_CONFIG_STORAGE_TOPIC: docker-connect-configs
+      CONNECT_CONFIG_STORAGE_REPLICATION_FACTOR: 1
+      CONNECT_OFFSET_FLUSH_INTERVAL_MS: 10000
+      CONNECT_OFFSET_STORAGE_TOPIC: docker-connect-offsets
+      CONNECT_OFFSET_STORAGE_REPLICATION_FACTOR: 1
+      CONNECT_STATUS_STORAGE_TOPIC: docker-connect-status
+      CONNECT_STATUS_STORAGE_REPLICATION_FACTOR: 1
+      CONNECT_KEY_CONVERTER: org.apache.kafka.connect.storage.StringConverter
+      CONNECT_VALUE_CONVERTER: org.apache.kafka.connect.json.JsonConverter
+      CONNECT_VALUE_CONVERTER_SCHEMAS_ENABLE: "false"
+      CONNECT_INTERNAL_KEY_CONVERTER: org.apache.kafka.connect.json.JsonConverter
+      CONNECT_INTERNAL_VALUE_CONVERTER: org.apache.kafka.connect.json.JsonConverter
+      CONNECT_ZOOKEEPER_CONNECT: 'zookeeper:2181'
+
+networks:
+  default:
+    external:
+      name: kafka-network
+  secondary:
+    external:
+      name: cassandra-network

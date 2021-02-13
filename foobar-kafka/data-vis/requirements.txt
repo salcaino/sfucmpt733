@@ -1,0 +1,6 @@
+pandas
+seaborn
+numpy
+matplotlib
+jupyter
+cassandra-driver

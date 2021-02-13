@@ -1,0 +1,29 @@
+version: '3'
+
+services:
+  tweetconsumer:
+    container_name: twitterconsumer
+    image: twitterconsumer
+    build: .
+    environment:
+      KAFKA_BROKER_URL: broker:9092
+      TOPIC_NAME: ${TWEET_TOPIC}
+      SINK_TOPIC_NAME: ${TWITTER_SINK_TOPIC}
+    volumes:
+      - $PWD/consumers/csvdata:/usr/app/data
+  weatherconsumer:
+    container_name: weatherconsumer
+    image: twitterconsumer
+    environment:
+      KAFKA_BROKER_URL: broker:9092
+      TOPIC_NAME: ${WEATHER_TOPIC}
+      CASSANDRA_HOST: ${CASSANDRA_HOST}
+      CASSANDRA_KEYSPACE: ${CASSANDRA_KEYSPACE}
+    command: ["python", "-u","python/weather_consumer.py"]
+    volumes:
+      - $PWD/consumers/csvdata:/usr/app/data
+
+networks:
+  default:
+    external:
+      name: kafka-network

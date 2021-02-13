@@ -1,0 +1,10 @@
+.DS_Store
+**/.DS_Store
+**/**/.DS_Store
+.vscode/launch.json
+.vscode/settings.json
+cassandra/data/
+consumers/.vscode/launch.json
+consumers/.vscode/settings.json
+twitter_service/config.py
+data

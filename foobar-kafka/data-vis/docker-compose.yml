@@ -1,0 +1,21 @@
+version: "3"
+
+services:
+  datavis:
+    container_name: datavis
+    hostname: datavis
+    build:
+      context: .
+    environment:
+      CASSANDRA_HOST: ${CASSANDRA_HOST}
+      CASSANDRA_KEYSPACE: ${CASSANDRA_KEYSPACE}
+      WEATHER_TABLE: ${WEATHER_TABLE}
+      TWITTER_TABLE: ${TWITTER_TABLE}
+    ports:
+        - 8888:8888
+    volumes:
+      - $PWD/data-vis/python:/usr/app
+networks:
+  default:
+    external:
+      name: cassandra-network

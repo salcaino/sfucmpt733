@@ -1,0 +1,6 @@
+kafka-python
+py7zr
+nltk
+scikit-learn
+pandas
+cassandra-driver
